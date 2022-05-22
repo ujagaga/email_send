@@ -24,7 +24,10 @@ import ssl
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import os
-import json
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 
 
 MQTT_RX_TOPIC = "email"
@@ -44,7 +47,7 @@ receiver = None
 CFG_FILE = "config.json"
 
 
-def sendmail(message, msg_recipient=recipient, msg_subject=subject):
+def sendmail(message, msg_recipient=recipient, msg_subject=subject, attach_file=None):
     # Test if the message is a json object
     try:
         params = json.loads(message)
@@ -55,9 +58,36 @@ def sendmail(message, msg_recipient=recipient, msg_subject=subject):
         # Not a json object. Just use as is.
         txt_msg = message
 
-    email_msg = "From: {}\n" \
-                "Subject: {}\n" \
-                "\n{}".format(sender_name, msg_subject, txt_msg)
+    # Create a multipart message and set headers
+    message = MIMEMultipart()
+    message["From"] = SENDER_EMAIL
+    message["To"] = msg_recipient
+    message["Subject"] = msg_subject
+    # Add body to email
+    message.attach(MIMEText(txt_msg, "plain"))
+
+    if attach_file is not None and os.path.isfile(attach_file):
+        # Open file in binary mode
+        with open(attach_file, "rb") as attachment:
+            # Add file as application/octet-stream
+            # Email client can usually download this automatically as attachment
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+
+        # Encode file in ASCII characters to send by email
+        encoders.encode_base64(part)
+
+        # Add header as key/value pair to attachment part
+        file_name = os.path.basename(attach_file)
+        part.add_header(
+            "Content-Disposition",
+            f"attachment; filename= {file_name}",
+        )
+
+        # Add attachment to message and convert message to string
+        message.attach(part)
+
+    text = message.as_string()
 
     context = ssl.create_default_context()
 
@@ -66,7 +96,7 @@ def sendmail(message, msg_recipient=recipient, msg_subject=subject):
             if SMTP_USE_STARTTLS:
                 server.starttls(context=context)
             server.login(SENDER_EMAIL, SENDER_PASSWORD)
-            server.sendmail(SENDER_EMAIL, msg_recipient, email_msg)
+            server.sendmail(SENDER_EMAIL, msg_recipient, text)
             server.close()
 
             return "OK"
@@ -174,6 +204,7 @@ if __name__ == '__main__':
                         required=False, default=subject)
     parser.add_argument("-r", "--recipient", help='Message recipient. Defaults to: "{}"'.format(recipient),
                         required=False, default=recipient)
+    parser.add_argument("-a", "--attachment", help='Attach file path', required=False)
     parser.add_argument("-d", "--daemon", help='Run in background listening to local MQTT topic "email" with response '
                                                'on MQTT topic "email_response" and/or http get request on port {}. '
                                                'Valid values: m (use MQTT), h (use HTTP), mh (use both).'
@@ -184,7 +215,8 @@ if __name__ == '__main__':
     subject = args.subject
 
     if args.message is not None:
-        print(sendmail(args.message, msg_recipient=recipient))
+        status = sendmail(args.message, msg_recipient=recipient, attach_file=args.attachment)
+        print(status)
 
     daemon_http = False
     daemon_mqtt = False
