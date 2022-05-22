@@ -23,6 +23,8 @@ import smtplib
 import ssl
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
+import os
+import json
 
 
 MQTT_RX_TOPIC = "email"
@@ -38,6 +40,7 @@ recipient = "some@default.recipient"
 subject = "Notification from IOT Portal"
 sender_name = "OC IOT portal"
 receiver = None
+CFG_FILE = "config.json"
 
 
 def sendmail(message, msg_recipient=recipient, msg_subject=subject):
@@ -58,9 +61,12 @@ def sendmail(message, msg_recipient=recipient, msg_subject=subject):
     context = ssl.create_default_context()
 
     try:
-        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, context=context) as server:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls(context=context)
             server.login(SENDER_EMAIL, SENDER_PASSWORD)
             server.sendmail(SENDER_EMAIL, msg_recipient, email_msg)
+            server.close()
+            print(SMTP_SERVER, SMTP_PORT, msg_recipient)
             return "OK"
     except Exception as e:
         return "ERROR: {}".format(e)
@@ -126,7 +132,37 @@ class HttpHandler(BaseHTTPRequestHandler):
             self.wfile.write("ERROR: No message text specified. Will not send email.".encode('utf-8'))
 
 
+def load_config():
+    global SMTP_PORT
+    global SENDER_EMAIL
+    global SENDER_PASSWORD
+    global SMTP_SERVER
+
+    file_path = os.path.realpath(__file__)
+    config_file = os.path.join(os.path.dirname(file_path), CFG_FILE)
+    if not os.path.isfile(config_file):
+        with open(config_file, "w") as cfile:
+            data = {
+                "smtp_port": SMTP_PORT,
+                "smtp_server": SMTP_SERVER,
+                "smtp_user": SENDER_EMAIL,
+                "smtp_pass": SENDER_PASSWORD
+            }
+            cfile.write(json.dumps(data))
+
+    data = {}
+    with open(config_file, "r") as cfile:
+        data = json.loads(cfile.read())
+
+    SMTP_PORT = data.get("smtp_port", SMTP_PORT)
+    SMTP_SERVER = data.get("smtp_server", SMTP_SERVER)
+    SENDER_EMAIL = data.get("smtp_user", SENDER_EMAIL)
+    SENDER_PASSWORD = data.get("smtp_pass", SENDER_PASSWORD)
+
+
 if __name__ == '__main__':
+    load_config()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--message", help="Text message to send.", required=False)
     parser.add_argument("-s", "--subject", help='Subject of the email. Defaults to: "{}"'.format(subject),
@@ -143,7 +179,7 @@ if __name__ == '__main__':
     subject = args.subject
 
     if args.message is not None:
-        sendmail(args.message)
+        print(sendmail(args.message, msg_recipient=recipient))
 
     daemon_http = False
     daemon_mqtt = False
