@@ -32,7 +32,8 @@ MQTT_TX_TOPIC = "email_response"
 MQTT_SERVER_ADDR = "localhost"
 MQTT_SERVER_PORT = 1883
 HTTP_PORT = 5555
-SMTP_PORT = 465
+SMTP_PORT = 587
+SMTP_USE_STARTTLS = True
 SENDER_EMAIL = "youremail@gmail.com"
 SENDER_PASSWORD = "yourAppPass"
 SMTP_SERVER = "smtp.gmail.com"
@@ -62,11 +63,12 @@ def sendmail(message, msg_recipient=recipient, msg_subject=subject):
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls(context=context)
+            if SMTP_USE_STARTTLS:
+                server.starttls(context=context)
             server.login(SENDER_EMAIL, SENDER_PASSWORD)
             server.sendmail(SENDER_EMAIL, msg_recipient, email_msg)
             server.close()
-            print(SMTP_SERVER, SMTP_PORT, msg_recipient)
+
             return "OK"
     except Exception as e:
         return "ERROR: {}".format(e)
@@ -137,6 +139,7 @@ def load_config():
     global SENDER_EMAIL
     global SENDER_PASSWORD
     global SMTP_SERVER
+    global SMTP_USE_STARTTLS
 
     file_path = os.path.realpath(__file__)
     config_file = os.path.join(os.path.dirname(file_path), CFG_FILE)
@@ -146,7 +149,8 @@ def load_config():
                 "smtp_port": SMTP_PORT,
                 "smtp_server": SMTP_SERVER,
                 "smtp_user": SENDER_EMAIL,
-                "smtp_pass": SENDER_PASSWORD
+                "smtp_pass": SENDER_PASSWORD,
+                "use_starttls": SMTP_USE_STARTTLS
             }
             cfile.write(json.dumps(data))
 
@@ -158,6 +162,7 @@ def load_config():
     SMTP_SERVER = data.get("smtp_server", SMTP_SERVER)
     SENDER_EMAIL = data.get("smtp_user", SENDER_EMAIL)
     SENDER_PASSWORD = data.get("smtp_pass", SENDER_PASSWORD)
+    SMTP_USE_STARTTLS = data.get("smtp_pass", SMTP_USE_STARTTLS)
 
 
 if __name__ == '__main__':
