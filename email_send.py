@@ -47,13 +47,14 @@ receiver = None
 CFG_FILE = "config.json"
 
 
-def sendmail(message, msg_recipient=recipient, msg_subject=subject, attach_file=None):
+def sendmail(message, msg_recipient=recipient, msg_subject=subject, attach_file_list=None):
     # Test if the message is a json object
     try:
         params = json.loads(message)
         txt_msg = params['m']
         msg_recipient = params.get('r', recipient)
         msg_subject = params.get('s', subject)
+        attach_file_list = params.get('a', "")
     except:
         # Not a json object. Just use as is.
         txt_msg = message
@@ -66,26 +67,29 @@ def sendmail(message, msg_recipient=recipient, msg_subject=subject, attach_file=
     # Add body to email
     message.attach(MIMEText(txt_msg, "plain"))
 
-    if attach_file is not None and os.path.isfile(attach_file):
-        # Open file in binary mode
-        with open(attach_file, "rb") as attachment:
-            # Add file as application/octet-stream
-            # Email client can usually download this automatically as attachment
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(attachment.read())
+    file_list = attach_file_list.split(',')
+    for file_path in file_list:
+        file_path = file_path.strip()
+        if os.path.isfile(file_path):
+            # Open file in binary mode
+            with open(file_path, "rb") as attachment:
+                # Add file as application/octet-stream
+                # Email client can usually download this automatically as attachment
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(attachment.read())
 
-        # Encode file in ASCII characters to send by email
-        encoders.encode_base64(part)
+            # Encode file in ASCII characters to send by email
+            encoders.encode_base64(part)
 
-        # Add header as key/value pair to attachment part
-        file_name = os.path.basename(attach_file)
-        part.add_header(
-            "Content-Disposition",
-            f"attachment; filename= {file_name}",
-        )
+            # Add header as key/value pair to attachment part
+            file_name = os.path.basename(file_path)
+            part.add_header(
+                "Content-Disposition",
+                f"attachment; filename= {file_name}",
+            )
 
-        # Add attachment to message and convert message to string
-        message.attach(part)
+            # Add attachment to message and convert message to string
+            message.attach(part)
 
     text = message.as_string()
 
@@ -215,7 +219,7 @@ if __name__ == '__main__':
     subject = args.subject
 
     if args.message is not None:
-        status = sendmail(args.message, msg_recipient=recipient, attach_file=args.attachment)
+        status = sendmail(args.message, msg_recipient=recipient, attach_file_list=args.attachment)
         print(status)
 
     daemon_http = False
