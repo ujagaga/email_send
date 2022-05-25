@@ -52,29 +52,30 @@ def sendmail(message, msg_recipient=recipient, msg_subject=subject, attach_file_
     # Add body to email
     message.attach(MIMEText(txt_msg, "plain"))
 
-    file_list = attach_file_list.split(',')
-    for file_path in file_list:
-        file_path = file_path.strip()
-        if os.path.isfile(file_path):
-            # Open file in binary mode
-            with open(file_path, "rb") as attachment:
-                # Add file as application/octet-stream
-                # Email client can usually download this automatically as attachment
-                part = MIMEBase("application", "octet-stream")
-                part.set_payload(attachment.read())
+    if attach_file_list is not None:
+        file_list = attach_file_list.split(',')
+        for file_path in file_list:
+            file_path = file_path.strip()
+            if os.path.isfile(file_path):
+                # Open file in binary mode
+                with open(file_path, "rb") as attachment:
+                    # Add file as application/octet-stream
+                    # Email client can usually download this automatically as attachment
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(attachment.read())
 
-            # Encode file in ASCII characters to send by email
-            encoders.encode_base64(part)
+                # Encode file in ASCII characters to send by email
+                encoders.encode_base64(part)
 
-            # Add header as key/value pair to attachment part
-            file_name = os.path.basename(file_path)
-            part.add_header(
-                "Content-Disposition",
-                f"attachment; filename= {file_name}",
-            )
+                # Add header as key/value pair to attachment part
+                file_name = os.path.basename(file_path)
+                part.add_header(
+                    "Content-Disposition",
+                    f"attachment; filename= {file_name}",
+                )
 
-            # Add attachment to message and convert message to string
-            message.attach(part)
+                # Add attachment to message and convert message to string
+                message.attach(part)
 
     text = message.as_string()
 
