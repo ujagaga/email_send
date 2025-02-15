@@ -24,7 +24,9 @@
                 <td>{{ user.email }}</td>
                 <td>{{ user.status }}</td>
                 <td>
+                    {% if user.status=='pending' %}
                     <a href="/admin?email={{ user.email }}&cmd=a" class="okcmd">Approve</a>
+                    {% endif %}
                     <a href="/admin?email={{ user.email }}&cmd=d" class="delcmd">Delete</a>
                 </td>
             </tr>

@@ -110,11 +110,21 @@ def get_user_from_db(email=None, token=None, exclude=None):
             return [dict(row) for row in data]  # Convert each row to dict
 
 
+def get_pending_user_count():
+    sql_query = "SELECT COUNT(*) FROM users WHERE status = 'pending'"
+
+    with sqlite3.connect(DB_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql_query)
+        count = cursor.fetchone()[0]  # Get the count directly
+        return count
+
+
 def add_user(email, token):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT INTO users (email, status, token, timestamp) VALUES (?, ?, ?)",
+            cursor.execute("INSERT INTO users (email, status, token, timestamp) VALUES (?, ?, ?, ?)",
                            (email, "pending", token, int(time())))
             conn.commit()
             return True

@@ -2,7 +2,7 @@
 from flask import Flask, request, render_template, flash, redirect, abort, session, send_file, url_for
 from config import ADMIN_EMAIL, FLASK_APP_SECRET_KEY, MAX_RECIPIENT_HISTORY, MIN_TIMEOUT
 from helper import (send_email, generate_captcha_text, generate_token, is_valid_email, init_db, get_user_from_db,
-                    add_user, delete_user, update_user)
+                    add_user, delete_user, update_user, get_pending_user_count)
 import json
 from captcha.image import ImageCaptcha
 import io
@@ -96,18 +96,21 @@ def subscribe():
         if user_input and user_input.upper() == session.get("captcha"):
             email = request.form.get("email")
             if email:
-                token = generate_token()
-                if add_user(email, token):
-                    send_email(
-                        recipient=ADMIN_EMAIL,
-                        subject="New user signed up",
-                        body=f"New user: {email} signed up for quick mail service."
-                             f"\nThe token generated for them is: {token}"
-                             f"\nApprove or remove: {request.host_url}admin"
-                    )
-                    flash("Email submitted. You will be contacted by the administrator as soon as possible.")
+                if get_pending_user_count() > MAX_RECIPIENT_HISTORY:
+                    flash("Maximum number of pending users reached. Please try later.")
                 else:
-                    flash("This e-mail is already registered.")
+                    token = generate_token()
+                    if add_user(email, token):
+                        send_email(
+                            recipient=ADMIN_EMAIL,
+                            subject="New user signed up",
+                            body=f"New user: {email} signed up for quick mail service."
+                                 f"\nThe token generated for them is: {token}"
+                                 f"\nApprove or remove: {request.host_url}admin"
+                        )
+                        flash("Email submitted. You will be contacted by the administrator as soon as possible.")
+                    else:
+                        flash("This e-mail is already registered.")
         else:
             flash("Invalid CAPTCHA. Try again!")
 
@@ -219,10 +222,21 @@ def admin():
         else:
             update_user(email, status='approved')
             user = get_user_from_db(email=email)
+            body = (f"You have been approved for using Quick Mail service."
+                    f"\nYour token is: {user['token']}"
+                    f"\nYou may use it to login to {request.host_url}login"
+                    f"\n\nTo send an e-mail, you can use the following URL example:\n"
+                    f'{request.host_url}send?token={user['token']}&msg="Some test message"&to={email}&sub="Test mail subject"'
+                    f"\n\nYou can also use a POST request with parameters in the request body."
+                    f"\nOnce you send an e-mail, the recipient will be added to your recipient list. "
+                    f'Up to {MAX_RECIPIENT_HISTORY} recipients will be saved, so if you omit the "to" parameter,'
+                    f'the recipient list will be populated from the history. While this simplifies sending mail for you, '
+                    f'it also prevents bots from using this service to spam a large number of e-mail addresses.'
+                    )
             send_email(
                 recipient=email,
                 subject="Approved for Quick Mail",
-                body=f"You have been approved for using Quick Mail service.\nYour token is: {user['token']}\nYou may use it to login to {request.host_url}login"
+                body=body
             )
 
         return redirect('/admin')
