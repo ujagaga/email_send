@@ -11,6 +11,7 @@
         <br>
         {% endif %}
         {% endwith %}
+        {% if show_subscribe %}
         <h1>Submit your email to subscribe for quick mail service</h1>
         <form method="POST" action="/subscribe">
             <div>
@@ -29,6 +30,7 @@
             </div>
             <button class="full-width">Submit</button>
         </form>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

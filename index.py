@@ -92,6 +92,7 @@ def home():
 
 @app.route("/subscribe", methods=["GET", "POST"])
 def subscribe():
+    show_subscribe = True
     if request.method == "POST":
         user_input = request.form.get("captcha")
         if user_input and user_input.upper() == session.get("captcha"):
@@ -109,13 +110,14 @@ def subscribe():
                                  f"\nThe token generated for them is: {token}"
                                  f"\nApprove or remove: {request.host_url}admin"
                         )
+                        show_subscribe = False
                         flash("Email submitted. You will be contacted by the administrator as soon as possible.")
                     else:
                         flash("This e-mail is already registered.")
         else:
             flash("Invalid CAPTCHA. Try again!")
 
-    return render_template('subscribe.html')
+    return render_template('subscribe.html', show_subscribe=show_subscribe)
 
 
 @app.route("/send", methods=["GET", "POST"])
