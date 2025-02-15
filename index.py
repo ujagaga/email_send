@@ -226,7 +226,7 @@ def admin():
                     f"\nYour token is: {user['token']}"
                     f"\nYou may use it to login to {request.host_url}login"
                     f"\n\nTo send an e-mail, you can use the following URL example:\n"
-                    f'{request.host_url}send?token={user['token']}&msg="Some test message"&to={email}&sub="Test mail subject"'
+                    f'{request.host_url}send?token={token}&msg="Some test message"&to={email}&sub="Test mail subject"'
                     f"\n\nYou can also use a POST request with parameters in the request body."
                     f"\nOnce you send an e-mail, the recipient will be added to your recipient list. "
                     f'Up to {MAX_RECIPIENT_HISTORY} recipients will be saved, so if you omit the "to" parameter,'
