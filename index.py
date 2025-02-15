@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 from flask import Flask, request, render_template, flash, redirect, abort, session, send_file, url_for
-from config import ADMIN_EMAIL, FLASK_APP_SECRET_KEY, MAX_RECIPIENT_HISTORY
+from config import ADMIN_EMAIL, FLASK_APP_SECRET_KEY, MAX_RECIPIENT_HISTORY, MIN_TIMEOUT
 from helper import (send_email, generate_captcha_text, generate_token, is_valid_email, init_db, get_user_from_db,
                     add_user, delete_user, update_user)
 import json
 from captcha.image import ImageCaptcha
 import io
+from time import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = FLASK_APP_SECRET_KEY
@@ -124,7 +125,12 @@ def send():
 
     user = get_user_from_db(token=token)
     if not user:
-        abort(401, description="Unauthorized. Provided token was not found in our records.")
+        abort(401, description="Provided token was not found in our records.")
+
+    last_timestamp = int(user["timestamp"])
+    time_since_last_mail = time() - last_timestamp
+    if time_since_last_mail < MIN_TIMEOUT:
+        abort(406, description=f"Please wait another {int(MIN_TIMEOUT - time_since_last_mail)}s before trying again")
 
     if not msg:
         abort(400, description='Missing message to email as "msg" parameter')

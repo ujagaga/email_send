@@ -1,6 +1,5 @@
 # Rename this to config.py and edit below fields
 
-
 SMTP_SERVER = "your smtp server without ssl"
 SMTP_PORT = 587
 SMTP_USER = "account_mail@smtp.server"
@@ -10,4 +9,5 @@ ADMIN_EMAIL = "administrator_email_to_be_notified_of_new_accounts"
 DB_FILE = "users.db"
 FLASK_APP_SECRET_KEY = "9OLWxND4o83j4K4iuopOdsfds_any_random_string"
 DOMAIN = "http://quickmail.your.domain.com"
-MAX_RECIPIENT_HISTORY = 10
+MAX_RECIPIENT_HISTORY = 10 # Max number of allowed recipients to combat bots
+MIN_TIMEOUT = 60    # Wait at least this long before accepting next send mail request from same user to prevent spamming

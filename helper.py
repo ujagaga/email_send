@@ -6,6 +6,7 @@ import sqlite3
 import random
 import string
 import re
+from time import time
 
 '''
 Sends an email using configured credentials. 
@@ -56,16 +57,16 @@ def init_db():
                     email TEXT UNIQUE NOT NULL,
                     status TEXT NOT NULL,
                     token TEXT,
-                    recipients TEXT
+                    recipients TEXT,
+                    timestamp INTEGER
                 )
             """
             cursor = conn.cursor()
             cursor.execute(create_table_sql_query)
-
             conn.commit()
 
             token = generate_token()
-            add_admin_sql_query = f"INSERT INTO users (email, status, token) VALUES ('{ADMIN_EMAIL}', 'admin', '{token}')"
+            add_admin_sql_query = f"INSERT INTO users (email, status, token, timestamp) VALUES ('{ADMIN_EMAIL}', 'admin', '{token}', '{int(time())}')"
             cursor.execute(add_admin_sql_query)
 
             conn.commit()
@@ -113,8 +114,8 @@ def add_user(email, token):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT INTO users (email, status, token) VALUES (?, ?, ?)",
-                           (email, "pending", token))
+            cursor.execute("INSERT INTO users (email, status, token, timestamp) VALUES (?, ?, ?)",
+                           (email, "pending", token, int(time())))
             conn.commit()
             return True
         except sqlite3.IntegrityError:
@@ -131,10 +132,14 @@ def delete_user(email):
 
 
 def update_user(email, status=None, recipients=None):
-    if status:
-        sql_query = f"UPDATE users SET status = '{status}' WHERE email = '{email}'"
+    timestamp = int(time())  # Get the current epoch time
+
+    if status is not None and recipients is not None:
+        sql_query = f"UPDATE users SET status = '{status}', recipients = '{recipients}', timestamp = {timestamp} WHERE email = '{email}'"
+    elif status is not None:
+        sql_query = f"UPDATE users SET status = '{status}', timestamp = {timestamp} WHERE email = '{email}'"
     elif recipients is not None:
-        sql_query = f"UPDATE users SET recipients = '{recipients}' WHERE email = '{email}'"
+        sql_query = f"UPDATE users SET recipients = '{recipients}', timestamp = {timestamp} WHERE email = '{email}'"
     else:
         return False
 
