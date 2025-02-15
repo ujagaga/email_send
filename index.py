@@ -224,7 +224,7 @@ def admin():
             update_user(email, status='approved')
             user = get_user_from_db(email=email)
             body = (f"You have been approved for using Quick Mail service."
-                    f"\nYour token is: {user['token']}"
+                    f"\nYour token is: {token}"
                     f"\nYou may use it to login to {request.host_url}login"
                     f"\n\nTo send an e-mail, you can use the following URL example:\n"
                     f'{request.host_url}send?token={token}&msg="Some test message"&to={email}&sub="Test mail subject"'

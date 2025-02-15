@@ -1,7 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from config import SMTP_SERVER, SMTP_PORT, SMTP_USER, SMTP_PASS, DB_FILE, ADMIN_EMAIL, DOMAIN
+from config import SMTP_SERVER, SMTP_PORT, SMTP_USER, SMTP_PASS, DB_FILE, ADMIN_EMAIL
 import sqlite3
 import random
 import string
@@ -76,10 +76,21 @@ def init_db():
 
             conn.commit()
 
+            body = (f"You have been added as Admin of QuickMail service."
+                    f"\nYour token is: {token}"
+                    f"\n\nTo send an e-mail, you can use the following URL example:\n"
+                    f'http://quickmail.yourdomain.com/send?token={token}&msg="Some test message"&to=recipient_email&sub="Test mail subject"'
+                    f"\n\nYou can also use a POST request with parameters in the request body."
+                    f"\nOnce you send an e-mail, the recipient will be added to your recipient list. "
+                    f'Up to {MAX_RECIPIENT_HISTORY} recipients will be saved, so if you omit the "to" parameter,'
+                    f'the recipient list will be populated from the history. While this simplifies sending mail for you, '
+                    f'it also prevents bots from using this service to spam a large number of e-mail addresses.'
+                    )
+
             send_email(
                 recipient=ADMIN_EMAIL,
                 subject="Your Admin Credentials",
-                body=f"You have been added as Admin of {DOMAIN}. Your login token is:{token}"
+                body=body
             )
     except sqlite3.Error:
         pass
