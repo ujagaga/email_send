@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="limited">
+
+    <h3 class="title">User List</h3>
+
+    <div class="box">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+        <table class="user-edit-table">
+            <tr>
+                <th>E-mail</th>
+                <th>Status</th>
+                <th>Command</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>{{ user.status }}</td>
+                <td>
+                    <a href="/admin?email={{ user.email }}&cmd=a" class="okcmd">Approve</a>
+                    <a href="/admin?email={{ user.email }}&cmd=d" class="delcmd">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+</div>
+{% endblock %}

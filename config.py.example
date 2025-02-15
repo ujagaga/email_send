@@ -1,0 +1,13 @@
+# Rename this to config.py and edit below fields
+
+
+SMTP_SERVER = "your smtp server without ssl"
+SMTP_PORT = 587
+SMTP_USER = "account_mail@smtp.server"
+SMTP_PASS = "user_account_password"
+ADMIN_EMAIL = "administrator_email_to_be_notified_of_new_accounts"
+
+DB_FILE = "users.db"
+FLASK_APP_SECRET_KEY = "9OLWxND4o83j4K4iuopOdsfds_any_random_string"
+DOMAIN = "http://quickmail.your.domain.com"
+MAX_RECIPIENT_HISTORY = 10

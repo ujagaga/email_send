@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="limited">
+
+    <h3 class="title">Login</h3>
+
+    <div class="box">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/login">
+            <input type="hidden" name="next_url" value="{{next_url}}">
+            <div>
+                <div class="control">
+                    <input type="email" name="email" placeholder="Your Email" autofocus="">
+                </div>
+                <div class="control">
+                    <input type="text" name="token" placeholder="Your Token">
+                </div>
+            </div>
+            <button class="full-width">Submit</button>
+        </form>
+        <br>
+        <a class="hyperlink" href="{{ url_for('subscribe') }}">No account? Subscribe here.</a>
+    </div>
+</div>
+{% endblock %}
