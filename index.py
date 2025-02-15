@@ -30,7 +30,7 @@ def check_auth():
 @app.before_request
 def check_token():
     init_db()
-    excluded_routes = ['home', 'login', 'subscribe', 'static', 'send', 'generate_captcha']  # Add routes to exclude
+    excluded_routes = ['home', 'login', 'subscribe', 'static', 'send', 'generate_captcha', 'resend_token']  # Add routes to exclude
     if request.endpoint in excluded_routes:
         return  # Skip checking the cookie
 
@@ -118,6 +118,27 @@ def subscribe():
             flash("Invalid CAPTCHA. Try again!")
 
     return render_template('subscribe.html', show_subscribe=show_subscribe)
+
+
+@app.route("/resend_token", methods=["GET", "POST"])
+def resend_token():
+    show_submit = True
+    if request.method == "POST":
+        email = request.form.get("email")
+        if email:
+            user = get_user_from_db(email=email)
+            if user:
+                token = user["token"]
+
+                send_email(
+                    recipient=email,
+                    subject="Quick Mail Token",
+                    body=f"You requested for your Quick Mail Token: {token}"
+                )
+                show_submit = False
+                flash("Email submitted. If it is in our database, we will send you your token.")
+
+    return render_template('resend_token.html', show_submit=show_submit)
 
 
 @app.route("/send", methods=["GET", "POST"])
