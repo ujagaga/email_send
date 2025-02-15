@@ -29,6 +29,7 @@ def check_auth():
 
 @app.before_request
 def check_token():
+    init_db()
     excluded_routes = ['home', 'login', 'subscribe', 'static', 'send', 'generate_captcha']  # Add routes to exclude
     if request.endpoint in excluded_routes:
         return  # Skip checking the cookie

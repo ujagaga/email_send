@@ -7,6 +7,7 @@ import random
 import string
 import re
 from time import time
+import os
 
 '''
 Sends an email using configured credentials. 
@@ -49,6 +50,10 @@ def is_valid_email(email):
 
 
 def init_db():
+    if os.path.exists(DB_FILE):
+        # Database file '{DB_FILE}' already exists. Aborting initialization.
+        return
+
     try:
         with sqlite3.connect(DB_FILE) as conn:
             create_table_sql_query = """

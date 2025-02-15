@@ -2,5 +2,4 @@
 config.py
 __pycache__
 *.db
-cgi_serve.py
 venv
