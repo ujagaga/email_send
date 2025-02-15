@@ -1,7 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from config import SMTP_SERVER, SMTP_PORT, SMTP_USER, SMTP_PASS, DB_FILE, ADMIN_EMAIL
+from config import SMTP_SERVER, SMTP_PORT, SMTP_USER, SMTP_PASS, DB_FILE, ADMIN_EMAIL, MAX_RECIPIENT_HISTORY
 import sqlite3
 import random
 import string
