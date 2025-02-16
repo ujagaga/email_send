@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, request, render_template, flash, redirect, abort, session, send_file, url_for
+from flask import Flask, request, render_template, flash, redirect, abort, session, send_file
 from config import ADMIN_EMAIL, FLASK_APP_SECRET_KEY, MAX_RECIPIENT_HISTORY, MIN_TIMEOUT
 from helper import (send_email, generate_captcha_text, generate_token, is_valid_email, init_db, get_user_from_db,
                     add_user, delete_user, update_user, get_pending_user_count)
@@ -9,6 +9,7 @@ import io
 from time import time
 
 app = Flask(__name__)
+app.config["APPLICATION_ROOT"] = "/cgi-bin/cgi_serve.py"
 app.config['SECRET_KEY'] = FLASK_APP_SECRET_KEY
 app.config.update(
     SESSION_COOKIE_SECURE=True,
@@ -35,7 +36,7 @@ def check_token():
         return  # Skip checking the cookie
 
     if not check_auth():
-        return redirect(url_for('login', next_url=request.endpoint))
+        return redirect(f"/login?next_url={request.endpoint}")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -52,7 +53,7 @@ def login():
                 if next_url and next_url != 'None':
                     target_url = next_url
                 else:
-                    target_url = url_for('home')
+                    target_url = "/"
 
                 response = redirect(target_url)
                 response.set_cookie("authToken", token, httponly=True, secure=True, samesite="Strict")
