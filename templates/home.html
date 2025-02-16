@@ -13,7 +13,7 @@
         {% endwith %}
     </div>
     <div class="story">
-        <h1>How To Use</h1>
+        <h1>How It Works</h1>
         <p>Once you submit your e-mail, you will receive a response with your designated token.<br>
             To send an e-mail, you simply make an HTTP GET or HTTP POST request to <br>"{{ request.url }}send" with parameters:</p>
         <ul>
@@ -27,6 +27,8 @@
         <p>{{ request.url }}send?token=your_token&msg=Url_safe_text_message</p>
         <p>where the recipient list is used from history.</p>
         <p>To send to multiple addresses, you may use a comma separated list of e-mails for "to" parameter.</p>
+        <br>
+        <a href="https://github.com/ujagaga/Quick_mail">This is an open source solution you may use as you wish.</a>
     </div>
 </div>
 {% endblock %}
