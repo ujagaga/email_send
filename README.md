@@ -35,3 +35,6 @@ A common pitfall is that this script must be executable, so:
 
         chmod +x cgi_serve.py
 
+## TODO
+
+- Make sure token is unique
