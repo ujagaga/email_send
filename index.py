@@ -9,7 +9,7 @@ import io
 from time import time
 
 app = Flask(__name__)
-app.config["APPLICATION_ROOT"] = "/cgi-bin/cgi_serve.py"
+# app.config["APPLICATION_ROOT"] = "/cgi-bin/cgi_serve.py"
 app.config['SECRET_KEY'] = FLASK_APP_SECRET_KEY
 app.config.update(
     SESSION_COOKIE_SECURE=True,
@@ -79,6 +79,7 @@ def logout():
 def generate_captcha():
     captcha_text = generate_captcha_text()
     session["captcha"] = captcha_text  # Store in session
+    print(captcha_text)
     image = ImageCaptcha()
     data = image.generate(captcha_text)
 

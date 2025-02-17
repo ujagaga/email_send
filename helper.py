@@ -40,10 +40,6 @@ def generate_captcha_text():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 
-def generate_token():
-    return ''.join(random.choices(string.ascii_letters, k=32))
-
-
 def is_valid_email(email):
     pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
     return bool(re.match(pattern, email))
@@ -175,3 +171,26 @@ def update_user(email, status=None, recipients=None):
         conn.commit()
 
     return True
+
+
+def check_token_exists(token):
+    sql_query = "SELECT 1 FROM users WHERE token = ?"  # Optimized query
+    params = (token,)
+
+    with sqlite3.connect(DB_FILE) as conn:
+        cursor = conn.cursor()  # No need for row_factory if just checking existence
+        cursor.execute(sql_query, params)
+        return cursor.fetchone() is not None
+
+
+
+def generate_token():
+    token_exists = True
+    token = ""
+    while token_exists:
+        token = ''.join(random.choices(string.ascii_letters, k=32))
+        token_exists = check_token_exists(token)
+        if token_exists:
+            print('Token not unique:', token)
+
+    return token
