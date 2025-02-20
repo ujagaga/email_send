@@ -8,6 +8,7 @@ import string
 import re
 from time import time
 import os
+import hashlib
 
 '''
 Sends an email using configured credentials. 
@@ -34,6 +35,33 @@ def send_email(recipient, subject, body):
         server.quit()
     except Exception as e:
         print(f"Error: {e}")
+
+
+def md5_encode(string_data):
+    """Encodes a string using MD5 and returns the hexadecimal digest.
+    Args:
+        string_data: The string to encode.  It will be encoded as UTF-8.
+    Returns:
+        The MD5 hash as a hexadecimal string, or None if an error occurs.
+    """
+    try:
+        encoded_string = string_data.encode('utf-8')
+        md5_hash = hashlib.md5()
+        md5_hash.update(encoded_string)
+        hex_digest = md5_hash.hexdigest()
+
+        return hex_digest
+
+    except Exception as e:
+        print(f"Error during MD5 encoding: {e}")
+        return None
+
+
+def generate_token():
+    random_str = random.choices(string.ascii_letters, k=16)
+    unique_str = f"{random_str}{time()}"
+
+    return md5_encode(unique_str)
 
 
 def generate_captcha_text():
@@ -171,26 +199,3 @@ def update_user(email, status=None, recipients=None):
         conn.commit()
 
     return True
-
-
-def check_token_exists(token):
-    sql_query = "SELECT 1 FROM users WHERE token = ?"  # Optimized query
-    params = (token,)
-
-    with sqlite3.connect(DB_FILE) as conn:
-        cursor = conn.cursor()  # No need for row_factory if just checking existence
-        cursor.execute(sql_query, params)
-        return cursor.fetchone() is not None
-
-
-
-def generate_token():
-    token_exists = True
-    token = ""
-    while token_exists:
-        token = ''.join(random.choices(string.ascii_letters, k=32))
-        token_exists = check_token_exists(token)
-        if token_exists:
-            print('Token not unique:', token)
-
-    return token
